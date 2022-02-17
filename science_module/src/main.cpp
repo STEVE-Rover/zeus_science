@@ -36,11 +36,15 @@ void setup() {
   }
   delay(1000);
   test_class.find_origin();
-  test_class.move_to_site(7, 0);
-  delay(2000);
-  test_class.move_to_site(7, 1);
-  delay(2000);
-  test_class.move_to_site(7, 1);
+  //test_class.move_to_site(7, 0);
+  //delay(2000);
+  //test_class.move_to_site(7, 1);
+  Serial.print("this is the initial life of sample 5: ");
+  Serial.println(test_class.get_info_on_sample(4));
+  Serial.println("WE update life to a presence on sample 5.");
+  test_class.set_info_on_sample(4, 1);
+  Serial.print("Sample 5 now contains: ");
+  Serial.println(test_class.get_info_on_sample(4));
 }
 
 void loop() {

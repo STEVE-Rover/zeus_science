@@ -25,6 +25,8 @@ private:
     int mem_max_speed;
     int mem_cruising_speed;
     int mem_max_acceleration;
+
+    Sample samples[num_of_sample_sites] = {};
     
 
 public:
@@ -34,18 +36,17 @@ public:
     float max_accel;
     float max_speed;
     float one_revolution;
-    int samples[8] = {};
 
     float rpm_to_steps(long required_rpm);
     void set_speed_and_accel(float max_speed, float cruising_speed, float max_accel);
     void find_origin();
     void update_sites(int sample_on_site_0);
     void move_to_site(int sample, int site);
+    int get_info_on_sample(int sample_number);
+    void set_info_on_sample(int sample_number, int presence);
 
     AccelStepper loader_motor;
 };
-
-
 
 
 RotationnalLoader::RotationnalLoader(
@@ -69,6 +70,10 @@ RotationnalLoader::RotationnalLoader(
 
     one_revolution = STEP_PER_REV * step_mode; // to the motor and not the drum
     steps_between_sites = (step_mode * STEP_PER_REV / num_of_sample_sites);
+
+    for(int i; i<num_of_sample_sites;i++){
+      samples[i] = Sample();
+    }
   }
 
 RotationnalLoader::~RotationnalLoader()
@@ -155,3 +160,10 @@ void RotationnalLoader::move_to_site(int sample, int site){
   }
 }
 
+void RotationnalLoader::set_info_on_sample(int sample_number, int presence){
+  samples[sample_number].set_life_info(presence);
+}
+
+int RotationnalLoader::get_info_on_sample(int sample_number){
+  return samples[sample_number].get_life_info();
+}
