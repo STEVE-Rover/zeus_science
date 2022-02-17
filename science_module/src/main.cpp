@@ -27,7 +27,7 @@ void setup() {
   pinMode(MS1_pin, OUTPUT);
   pinMode(MS2_pin, OUTPUT);
   pinMode(MS3_pin, OUTPUT);
-  pinMode(position_switch_pin, INPUT);
+  pinMode(position_switch_pin, INPUT_PULLUP);
 
   Serial.begin(9600);
   while(Serial.available() == 1){
@@ -38,11 +38,11 @@ void setup() {
   }
   delay(1000);
   test_class.find_origin();
-  delay(1000);
-  test_class.move_to_site(2, 0);
+  test_class.move_to_site(7, 0);
+  delay(2000);
+  test_class.move_to_site(7, 1);
 }
 
 void loop() {
-  //test_class.move_to_site(2, 0);
-  delay(1000);
+  
 }

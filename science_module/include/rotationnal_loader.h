@@ -7,11 +7,11 @@ class RotationnalLoader
 private:
     int step_mode;
     int step_per_rev = 200;
-    long distance_between_sites;
-    int sites[2] = {0, 0};
+    long steps_between_sites;
+    int sites[2] = {0, 4};
     int recipient_on_site_0; //site 0 = dirt
     int recipient_on_site_1; //site 1 = eau
-    int sites_between_0_1 = 4;  //so there are 4 samples between station 1 and 2
+    int samples_between_0_1 = 4;  //so there are 4 samples between station 1 and 2
 
     int mem_max_speed;
     int mem_cruising_speed;
@@ -65,7 +65,7 @@ RotationnalLoader::RotationnalLoader(
     step_mode = step_mode_in;
   
     one_revolution = step_per_rev * step_mode;
-    distance_between_sites = (step_mode * step_per_rev / 8);
+    steps_between_sites = (step_mode * step_per_rev / 8);
     Serial.println(step_mode);
     Serial.println(step_per_rev);
   }
@@ -106,37 +106,16 @@ void RotationnalLoader::find_origin(){
 }
 
 void RotationnalLoader::update_sites(int sample_on_site_0){ //This function isnt working
-  for (unsigned int i=0; i<sizeof(sites); i++){
-    if (i==0){
-      int new_pos = sample_on_site_0 + sites_between_0_1;
+  Serial.print("input to update site 0 with: ");
+  Serial.println(sample_on_site_0);
+  int dummy=sample_on_site_0;
 
-      if (new_pos > 7){
-        sites[i] = new_pos - 8;
-      }
-      if (new_pos < 0){
-        sites[i] = new_pos + 8;
-      }
-      else{
-        sites[i] = new_pos;
-      }
-      
-    }
-
-  if (i==1){
-      if(sample_on_site_0 > 7){
-        sites[i] = sample_on_site_0 % 8;
-      }
-
-      if(sample_on_site_0 < 0){
-        sites[i] = sample_on_site_0 + 8;
-      }
-
-      else{
-        sites[i] = sample_on_site_0;
-      }
-      
-    }
+  if (sample_on_site_0<0){
+    dummy = sample_on_site_0 + 8;
   }
+
+  sites[0] = (sites[0] + dummy) % 8 ;
+  sites[1] = (sites[1] + dummy ) % 8;
 
   Serial.print("Site 0 is now ");
   Serial.print(sites[0]);
@@ -146,25 +125,23 @@ void RotationnalLoader::update_sites(int sample_on_site_0){ //This function isnt
 
 void RotationnalLoader::move_to_site(int sample, int site){
   int sample_at_site = sites[site];
-  if(sample != sample_at_site){
-    Serial.print("Sample at site ");
-    Serial.print(site);
-    Serial.print(" is ");
-    Serial.println(sample_at_site);
-    int sample_to_move = sample_at_site - sample;
-    Serial.print("We need to move ");
-    Serial.print(sample_to_move);
-    Serial.println(" increment");
-    long distance_to_move = sample_to_move * distance_between_sites;
-    Serial.print("This represents ");
-    Serial.print(distance_to_move);
-    Serial.println(" steps");
-    long final_destination = loader_motor.currentPosition() + distance_to_move;
-    Serial.print("Starting from the beginning position, we need to move ");
-    Serial.print(final_destination);
-    Serial.println(" steps");
+  int test1 = ((sample - sample_at_site) % 8);
+  int test2 = test1 - 8;
+  int sample_to_move = 0;
+
+  sample_to_move = (abs(test1) < abs(test2)) ? test1:test2;
+
+  Serial.println(sample_to_move);
+ 
+
+  if((sample - sample_at_site) != 0){ 
     
-    update_sites((sites[0] + sample_to_move));
+    long distance_to_move = sample_to_move * steps_between_sites;
+    
+    long final_destination = loader_motor.currentPosition() + distance_to_move;
+    
+    
+    update_sites((sample_to_move));
     
     int rotation_dir = (sample_to_move/abs(sample_to_move));
 
