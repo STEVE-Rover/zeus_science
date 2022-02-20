@@ -3,7 +3,7 @@
 class Sample
 {
 private:
-    int life; // -1 stands for "nothing was done yet on the sample"
+    float life; // -1 stands for "nothing was done yet on the sample"
     float ph; //from 0 to 14
     float humidity; //in ppm
 
@@ -20,7 +20,7 @@ public:
 
 Sample::Sample()
 {
-    life = -1;
+    life = -1.0;
     ph = -1.0;
     humidity = -1.0;
 }

@@ -12,11 +12,15 @@ private:
     #define num_of_site 2
     #define origin_tolerance 75
 
+    #define stepper_max_speed 1000.0
+    #define stepper_cruise_speed 50.0
+    #define stepper_accel 10.0
+
     uint8_t direction_pin;
     uint8_t step_pin;
-    uint8_t MS1_pin;
-    uint8_t MS2_pin;
-    uint8_t MS3_pin;
+    uint8_t MS1_pin; //required?
+    uint8_t MS2_pin; //required?
+    uint8_t MS3_pin; //required?
     uint8_t position_switch_pin;
 
     long steps_between_sites;
@@ -30,63 +34,75 @@ private:
     
 
 public:
-    RotationnalLoader(uint8_t direction_pin_in, uint8_t step_pin_in, uint8_t MS1_pin_in, uint8_t MS2_pin_in, uint8_t MS3_pin_in, int step_mode_in, uint8_t position_switch_pin_in);
+    RotationnalLoader(){
+      direction_pin = 52;
+      step_pin = 53;
+      MS1_pin = 51;
+      MS2_pin = 49;
+      MS3_pin = 47;
+      step_mode = 16;
+      position_switch_pin = 50;
+      set_pinout();
+    };
+
+    RotationnalLoader(uint8_t direction_pin_in, uint8_t step_pin_in, uint8_t MS1_pin_in, uint8_t MS2_pin_in, uint8_t MS3_pin_in, int step_mode_in, uint8_t position_switch_pin_in){
+      direction_pin = direction_pin_in;
+      step_pin = step_pin_in;
+      MS1_pin = MS1_pin_in; //required?
+      MS2_pin = MS2_pin_in; //required?
+      MS3_pin = MS3_pin_in; //required?
+      position_switch_pin = position_switch_pin_in;
+      step_mode = step_mode_in;
+
+      stepper1 = AccelStepper(1, step_pin, direction_pin);
+
+      one_revolution = STEP_PER_REV * step_mode; // to the motor and not the drum
+      steps_between_sites = (step_mode * STEP_PER_REV / num_of_sample_sites);
+
+      //assigning blank samples to every sample sites
+      for(int i; i < num_of_sample_sites; i++){ 
+        samples[i] = Sample();
+      }
+
+      set_pinout(); //setting pinout outside of arduino setup loop (might not work)
+    };
+
     ~RotationnalLoader();
 
     float max_accel;
     float max_speed;
     float one_revolution;
 
+    void set_pinout();
     float rpm_to_steps(long required_rpm);
     void set_speed_and_accel(float max_speed, float cruising_speed, float max_accel);
     void find_origin();
     void update_sites(int sample_on_site_0);
     void move_to_site(int sample, int site);
-    int get_info_on_sample(int sample_number);
-    void set_info_on_sample(int sample_number, int presence);
+    int get_info_on_sample(int sample_number, String param_to_get);
+    void set_info_on_sample(int sample_number, String param_to_update, float value);
 
-    AccelStepper loader_motor;
+    AccelStepper stepper1;
 };
-
-
-RotationnalLoader::RotationnalLoader(
-  uint8_t direction_pin_in,
-  uint8_t step_pin_in, 
-  uint8_t MS1_pin_in, 
-  uint8_t MS2_pin_in, 
-  uint8_t MS3_pin_in, 
-  int step_mode_in, 
-  uint8_t position_switch_pin_in){
-
-    direction_pin = direction_pin_in;
-    step_pin = step_pin_in;
-    MS1_pin = MS1_pin_in; //required?
-    MS2_pin = MS2_pin_in; //required?
-    MS3_pin = MS3_pin_in; //required?
-    position_switch_pin = position_switch_pin_in;
-    step_mode = step_mode_in;
-
-    loader_motor = AccelStepper(1, step_pin, direction_pin);
-
-    one_revolution = STEP_PER_REV * step_mode; // to the motor and not the drum
-    steps_between_sites = (step_mode * STEP_PER_REV / num_of_sample_sites);
-
-    for(int i; i<num_of_sample_sites;i++){
-      samples[i] = Sample();
-    }
-  }
 
 RotationnalLoader::~RotationnalLoader()
 {}
 
-void RotationnalLoader::set_speed_and_accel(float max_speed, float cruising_speed, float max_accel){
+void RotationnalLoader::set_pinout(){
+  pinMode(MS1_pin, OUTPUT);
+  pinMode(MS2_pin, OUTPUT);
+  pinMode(MS3_pin, OUTPUT);
+  pinMode(position_switch_pin, INPUT);
+}
+
+void RotationnalLoader::set_speed_and_accel(float max_speed=stepper_max_speed, float cruising_speed=stepper_cruise_speed, float max_accel=stepper_accel){
   mem_max_speed = max_speed;
   mem_cruising_speed = cruising_speed;
   mem_max_acceleration = max_accel;
 
-  loader_motor.setAcceleration(max_accel);
-  loader_motor.setMaxSpeed(max_speed);
-  loader_motor.setSpeed(cruising_speed);
+  stepper1.setAcceleration(max_accel);
+  stepper1.setMaxSpeed(max_speed);
+  stepper1.setSpeed(cruising_speed);
 
 }
 
@@ -99,24 +115,24 @@ void RotationnalLoader::find_origin(){
   while(digitalRead(position_switch_pin) != 0)
   {
     Serial.println(digitalRead(position_switch_pin));
-    loader_motor.setSpeed(rpm_to_steps(mem_cruising_speed));
-    loader_motor.runSpeed();
+    stepper1.setSpeed(rpm_to_steps(mem_cruising_speed));
+    stepper1.runSpeed();
   }
 
   while(digitalRead(position_switch_pin) != 1)
   {
     Serial.println(digitalRead(position_switch_pin));
-    loader_motor.setSpeed(rpm_to_steps(mem_cruising_speed));
-    loader_motor.runSpeed();
+    stepper1.setSpeed(rpm_to_steps(mem_cruising_speed));
+    stepper1.runSpeed();
   }
 
-  loader_motor.setCurrentPosition(0);
+  stepper1.setCurrentPosition(0);
 
-  while(loader_motor.currentPosition() != origin_tolerance){  //buffer for origin to fall directly into the hole
-    loader_motor.setSpeed(rpm_to_steps(mem_cruising_speed));
-    loader_motor.runSpeed();
+  while(stepper1.currentPosition() != origin_tolerance){  //buffer for origin to fall directly into the hole
+    stepper1.setSpeed(rpm_to_steps(mem_cruising_speed));
+    stepper1.runSpeed();
   }
-  loader_motor.setCurrentPosition(0);
+  stepper1.setCurrentPosition(0);
     
   update_sites(0);
 }
@@ -147,23 +163,46 @@ void RotationnalLoader::move_to_site(int sample, int site){
 
   if((sample - sample_at_site) != 0){ 
     long distance_to_move = num_of_sample_to_move * steps_between_sites * gear_ratio;
-    long final_destination = loader_motor.currentPosition() + distance_to_move;  
+    long final_destination = stepper1.currentPosition() + distance_to_move;  
     int rotation_dir = (num_of_sample_to_move/abs(num_of_sample_to_move));
 
-    while(loader_motor.currentPosition() != final_destination){
-      loader_motor.setSpeed(rotation_dir * rpm_to_steps(mem_cruising_speed));
-      loader_motor.runSpeed();
+    while(stepper1.currentPosition() != final_destination){
+      stepper1.setSpeed(rotation_dir * rpm_to_steps(mem_cruising_speed));
+      stepper1.runSpeed();
     }
 
-    Serial.println(loader_motor.currentPosition());
+    Serial.println(stepper1.currentPosition());
     update_sites((num_of_sample_to_move));
   }
 }
 
-void RotationnalLoader::set_info_on_sample(int sample_number, int presence){
-  samples[sample_number].set_life_info(presence);
+void RotationnalLoader::set_info_on_sample(int sample_number, String param_to_update, float value){
+  
+  if (param_to_update == "life"){
+    samples[sample_number].set_life_info(value);
+  }
+  else if (param_to_update == "humidity"){
+    samples[sample_number].set_humidity_info(value);
+  }
+
+  else if (param_to_update == "ph"){
+    samples[sample_number].set_ph_info(value);
+  }
 }
 
-int RotationnalLoader::get_info_on_sample(int sample_number){
-  return samples[sample_number].get_life_info();
+int RotationnalLoader::get_info_on_sample(int sample_number, String param_to_get){
+
+  if (param_to_get == "life"){
+    return samples[sample_number].get_life_info();
+  }
+  
+  else if (param_to_get == "humidity"){
+    return samples[sample_number].get_humidity_info();
+  }
+
+  else if (param_to_get == "ph"){
+    return samples[sample_number].get_ph_info();
+  }
+
+  return -2;
 }
