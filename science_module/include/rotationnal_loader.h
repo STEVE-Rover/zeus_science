@@ -2,20 +2,20 @@
 #include <Arduino.h>
 #include <sample.h>
 
+#define STEP_PER_REV  200
+#define num_of_sample_sites 8
+#define samples_between_0_1 4 //so there are 4 samples between station 1 and 2
+#define gear_ratio 128/76
+#define num_of_site 2
+#define origin_tolerance 75
+
+#define stepper_max_speed 2500.0
+#define stepper_cruise_speed 2000.0
+#define stepper_accel 20.0
+
 class RotationnalLoader
 {
 private:
-    #define STEP_PER_REV  200
-    #define num_of_sample_sites 8
-    #define samples_between_0_1 4 //so there are 4 samples between station 1 and 2
-    #define gear_ratio 128/76
-    #define num_of_site 2
-    #define origin_tolerance 75
-
-    #define stepper_max_speed 1000.0
-    #define stepper_cruise_speed 50.0
-    #define stepper_accel 10.0
-
     uint8_t direction_pin;
     uint8_t step_pin;
     uint8_t MS1_pin; //required?
@@ -42,7 +42,17 @@ public:
       MS3_pin = 47;
       step_mode = 16;
       position_switch_pin = 50;
-      set_pinout();
+
+      stepper1 = AccelStepper(1, step_pin, direction_pin);
+      one_revolution = STEP_PER_REV * step_mode; // to the motor and not the drum
+      steps_between_sites = (step_mode * STEP_PER_REV / num_of_sample_sites);
+
+      //assigning blank samples to every sample sites
+      for(int i; i < num_of_sample_sites; i++){ 
+        samples[i] = Sample();
+      }
+
+      set_pinout(); //setting pinout outside of arduino setup loop (might not work)
     };
 
     RotationnalLoader(uint8_t direction_pin_in, uint8_t step_pin_in, uint8_t MS1_pin_in, uint8_t MS2_pin_in, uint8_t MS3_pin_in, int step_mode_in, uint8_t position_switch_pin_in){
@@ -111,23 +121,20 @@ float RotationnalLoader::rpm_to_steps(long required_rpm){
 }
 
 void RotationnalLoader::find_origin(){
-
   while(digitalRead(position_switch_pin) != 0)
   {
-    Serial.println(digitalRead(position_switch_pin));
     stepper1.setSpeed(rpm_to_steps(mem_cruising_speed));
     stepper1.runSpeed();
   }
 
   while(digitalRead(position_switch_pin) != 1)
   {
-    Serial.println(digitalRead(position_switch_pin));
     stepper1.setSpeed(rpm_to_steps(mem_cruising_speed));
     stepper1.runSpeed();
   }
 
   stepper1.setCurrentPosition(0);
-
+  
   while(stepper1.currentPosition() != origin_tolerance){  //buffer for origin to fall directly into the hole
     stepper1.setSpeed(rpm_to_steps(mem_cruising_speed));
     stepper1.runSpeed();
@@ -138,7 +145,7 @@ void RotationnalLoader::find_origin(){
 }
 
 void RotationnalLoader::update_sites(int sample_on_site_0){
-  Serial.println(sample_on_site_0);
+  //Serial.println(sample_on_site_0);
   int dummy=sample_on_site_0;
 
   if (sample_on_site_0 < 0){
