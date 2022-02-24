@@ -16,7 +16,7 @@ cd /etc/udev/rules.d
 # create a new rule file
 sudo touch my-newrule.rules
 # open the file
-sudo vim my-newrule.rules
+sudo nano my-newrule.rules
 # add the following
 KERNEL=="ttyACM0", MODE="0666"
 ```
