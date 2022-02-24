@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>steve_serial</name>
+  <version>0.0.0</version>
+  <description>The steve_serial package</description>
+
+  <maintainer email="loic.boileau@usherbrooke.ca">Loic Boileau</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>python-rospkg</depend>
+  <depend>rosserial-arduino</depend>
+  <depend>rosserial</depend>
+
+  <export>
+  </export>
+
+</package>
