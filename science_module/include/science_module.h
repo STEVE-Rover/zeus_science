@@ -1,4 +1,5 @@
 #include <rotationnal_loader.h>
+#include <screw.h>
 #include <Arduino.h>
 
 class ScienceModule{
@@ -10,11 +11,13 @@ public:
 
     void set_modules_stepper_speed();
 
-    RotationnalLoader rotationnal_loader;
+    RotationnalLoaderModule rotationnal_loader;
+    ScrewModule screw_module;
 };
 
 ScienceModule::ScienceModule(){
-    rotationnal_loader = RotationnalLoader();
+    rotationnal_loader = RotationnalLoaderModule();
+    screw_module = ScrewModule();
 }
 
 ScienceModule::~ScienceModule(){}
@@ -22,3 +25,5 @@ ScienceModule::~ScienceModule(){}
 void ScienceModule::set_modules_stepper_speed(){
     rotationnal_loader.set_speed_and_accel();
 }
+
+//put interrupt on hard limits
