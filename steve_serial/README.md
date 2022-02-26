@@ -20,3 +20,10 @@ sudo nano my-newrule.rules
 # add the following
 KERNEL=="ttyACM0", MODE="0666"
 ```
+
+
+## Generate message file header for arduino library
+The arduino library might need custom messages to use publishers and subscribers. To generate a header msg file, you need to run a node call make_library.py from rosserial_arduino.
+```bash
+rosrun rosserial_arduino make_libraries.py <path_to_folder_where_libraries_headers_are_created> <path_to_msg_folder>
+```
