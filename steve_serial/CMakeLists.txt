@@ -5,6 +5,7 @@ project(steve_serial)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
+  rosserial_arduino
   message_generation
 )
 
@@ -22,7 +23,7 @@ generate_messages(
 
 catkin_package(
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS rospy message_runtime
+  CATKIN_DEPENDS rospy rosserial_arduino message_runtime
 )
 
 # Install launch files
