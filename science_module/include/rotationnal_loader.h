@@ -1,6 +1,7 @@
 #include <AccelStepper.h>
 #include <Arduino.h>
 #include <sample.h>
+#include <Constant.h>
 
 class RotationnalLoaderModule
 {
@@ -31,10 +32,13 @@ private:
     int mem_max_acceleration;
 
     Sample samples[num_of_sample_sites] = {};
+
+    String status = UNCONSTRUCTED;
     
 
 public:
     RotationnalLoaderModule(){
+      status = CONSTRUCTOR;
       direction_pin = 52;
       step_pin = 53;
       MS1_pin = 51;
@@ -54,9 +58,11 @@ public:
       }
 
       set_pinout(); //setting pinout outside of arduino setup loop (might not work)
+      status = IDLE;
     };
 
     RotationnalLoaderModule(uint8_t direction_pin_in, uint8_t step_pin_in, uint8_t MS1_pin_in, uint8_t MS2_pin_in, uint8_t MS3_pin_in, int step_mode_in, uint8_t position_switch_pin_in){
+      status = CONSTRUCTOR;
       direction_pin = direction_pin_in;
       step_pin = step_pin_in;
       MS1_pin = MS1_pin_in; //required?
@@ -76,6 +82,7 @@ public:
       }
 
       set_pinout(); //setting pinout outside of arduino setup loop (might not work)
+      status = IDLE;
     };
 
     ~RotationnalLoaderModule();
@@ -87,11 +94,14 @@ public:
     void set_pinout();
     float rpm_to_steps(long required_rpm);
     void set_speed_and_accel(float max_speed, float cruising_speed, float max_accel);
-    void find_origin();
+    void find_origin(float speed);
     void update_sites(int sample_on_site_0);
     void move_to_site(int sample, int site);
     int get_info_on_sample(int sample_number, String param_to_get);
     void set_info_on_sample(int sample_number, String param_to_update, float value);
+    String get_status();
+    void set_status(String new_status);
+    void dispatch_functions(String function, int param);
 
     AccelStepper stepper1;
 };
@@ -100,13 +110,16 @@ RotationnalLoaderModule::~RotationnalLoaderModule()
 {}
 
 void RotationnalLoaderModule::set_pinout(){
+  status = INIT;
   pinMode(MS1_pin, OUTPUT);
   pinMode(MS2_pin, OUTPUT);
   pinMode(MS3_pin, OUTPUT);
   pinMode(position_switch_pin, INPUT);
+  status = IDLE;
 }
 
 void RotationnalLoaderModule::set_speed_and_accel(float max_speed=stepper_max_speed, float cruising_speed=stepper_cruise_speed, float max_accel=stepper_accel){
+  status = INIT;
   mem_max_speed = max_speed;
   mem_cruising_speed = cruising_speed;
   mem_max_acceleration = max_accel;
@@ -114,39 +127,42 @@ void RotationnalLoaderModule::set_speed_and_accel(float max_speed=stepper_max_sp
   stepper1.setAcceleration(max_accel);
   stepper1.setMaxSpeed(max_speed);
   stepper1.setSpeed(cruising_speed);
-
+  status = IDLE;
 }
 
 float RotationnalLoaderModule::rpm_to_steps(long required_rpm){
   return (float) (abs(required_rpm * gear_ratio * step_mode * STEP_PER_REV)/60);
 }
 
-void RotationnalLoaderModule::find_origin(){
+void RotationnalLoaderModule::find_origin(float speed = stepper_cruise_speed){
+  status = BUSY;
   while(digitalRead(position_switch_pin) != 0)
   {
-    stepper1.setSpeed(rpm_to_steps(mem_cruising_speed));
+    stepper1.setSpeed(rpm_to_steps(speed));
     stepper1.runSpeed();
   }
 
   while(digitalRead(position_switch_pin) != 1)
   {
-    stepper1.setSpeed(rpm_to_steps(mem_cruising_speed));
+    stepper1.setSpeed(rpm_to_steps(speed));
     stepper1.runSpeed();
   }
 
   stepper1.setCurrentPosition(0);
   
   while(stepper1.currentPosition() != origin_tolerance){  //buffer for origin to fall directly into the hole
-    stepper1.setSpeed(rpm_to_steps(mem_cruising_speed));
+
+    stepper1.setSpeed(rpm_to_steps(speed));
     stepper1.runSpeed();
   }
   stepper1.setCurrentPosition(0);
     
   update_sites(0);
+  status = IDLE;
 }
 
 void RotationnalLoaderModule::update_sites(int sample_on_site_0){
-  //Serial.println(sample_on_site_0);
+  status = BUSY;
   int dummy=sample_on_site_0;
 
   if (sample_on_site_0 < 0){
@@ -156,9 +172,11 @@ void RotationnalLoaderModule::update_sites(int sample_on_site_0){
   for(int i=0; i<num_of_site; i++){
     sites[i] = (sites[i] + dummy) % num_of_sample_sites ;
   }
+  status = IDLE;
 }
 
 void RotationnalLoaderModule::move_to_site(int sample, int site){
+  status = BUSY;
   int sample_at_site = sites[site];
   int path = ((sample - sample_at_site) % num_of_sample_sites);
   int inverse_path = path - num_of_sample_sites;
@@ -182,10 +200,11 @@ void RotationnalLoaderModule::move_to_site(int sample, int site){
     Serial.println(stepper1.currentPosition());
     update_sites((num_of_sample_to_move));
   }
+  status = IDLE;
 }
 
 void RotationnalLoaderModule::set_info_on_sample(int sample_number, String param_to_update, float value){
-  
+  status = BUSY;
   if (param_to_update == "life"){
     samples[sample_number].set_life_info(value);
   }
@@ -196,10 +215,11 @@ void RotationnalLoaderModule::set_info_on_sample(int sample_number, String param
   else if (param_to_update == "ph"){
     samples[sample_number].set_ph_info(value);
   }
+  status = IDLE;
 }
 
 int RotationnalLoaderModule::get_info_on_sample(int sample_number, String param_to_get){
-
+  status = BUSY;
   if (param_to_get == "life"){
     return samples[sample_number].get_life_info();
   }
@@ -211,6 +231,31 @@ int RotationnalLoaderModule::get_info_on_sample(int sample_number, String param_
   else if (param_to_get == "ph"){
     return samples[sample_number].get_ph_info();
   }
-
+  status = IDLE;
   return -2;
+}
+
+String RotationnalLoaderModule::get_status(){
+  return status;
+}
+
+void RotationnalLoaderModule::set_status(String new_status){
+  status = new_status;
+}
+
+
+void RotationnalLoaderModule::dispatch_functions(String function, int param){
+  if (function == "find_origin"){
+    find_origin();
+  }
+
+  else if (function == "move_to_site"){
+    //move_to_site();
+  }
+
+  else if (function == "get_info_on_sample"){
+    //get_info_on_sample(int sample_number, String param_to_get);
+  }
+
+  else{}
 }
