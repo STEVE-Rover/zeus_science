@@ -41,24 +41,25 @@ void setup() {
   science.screw_module.init();
   Serial.begin(9600);
   science.set_modules_stepper_speed();
-  //science.find_origin();
-  //delay(1000);
-
-  //science.screw_module.spin_screw(CW, 0.2);
-  //science.screw_module.move_to_ground();
-  //science.rotationnal_loader.find_origin(50);
+  //science.screw_module.change_motor_state(science.screw_module.up_down_motor,CCW, 0.1);
+  science.rotationnal_loader.find_origin();
+  delay(1000);
+  //science.screw_module.spin_screw(CW, 0.25);
+  //science.rotationnal_loader.find_origin();
+  
+  
   //delay(3000);
-  /*science.rotationnal_loader.move_to_site(0, 0);
-  delay(3000);
-  science.rotationnal_loader.move_to_site(5, 0);
-  delay(3000);
+  //science.rotationnal_loader.move_to_site(0, 0);
+  delay(1000);
+  //science.rotationnal_loader.move_to_site(3,0);
+  /*delay(3000);
   science.rotationnal_loader.move_to_site(7, 0);
   delay(3000);
   science.rotationnal_loader.move_to_site(0, 0);
-  delay(3000);*/
-  //science.screw_module.spin_screw(STOP);
+  delay(3000);
+  science.screw_module.spin_screw(STOP);
 
-  /*Serial.print("this is the initial life of sample 5: ");
+  Serial.print("this is the initial life of sample 5: ");
   Serial.println(science.rotationnal_loader.get_info_on_sample(4, "life"));
   Serial.println("WE update life to a presence on sample 5.");
   science.rotationnal_loader.set_info_on_sample(4,"life", 1.0);
@@ -67,6 +68,7 @@ void setup() {
 }
 
 void loop() {
+  
   science.update_status();
   science_msg.status.data = science.get_status().c_str();
   science_output.publish(&science_msg);

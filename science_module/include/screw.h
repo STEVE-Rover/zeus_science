@@ -21,8 +21,8 @@ class ScrewModule{
         void init();
         void change_motor_state(Servo motor_to_change, int motor_direction, float new_state);
         void set_pinout();
-        void find_origin(float speed);
-        void move_to_ground(float speed);
+        void find_origin();
+        void move_to_ground();
         void spin_screw(int direction, float speed);
         String get_status();
         void set_status(String new_status);
@@ -34,7 +34,7 @@ ScrewModule::ScrewModule(){
     status = CONSTRUCTOR;
     bottom_reed_switch_pin = 22;
     top_reed_switch_pin = 23;
-    up_down_motor_pwm_pin = 9;
+    up_down_motor_pwm_pin = 8;
     screw_motor_pwm_pin = 10;
 
     set_pinout();
@@ -80,8 +80,9 @@ void ScrewModule::change_motor_state(Servo motor_to_change, int motor_direction,
     status = IDLE;
 }
 
-void ScrewModule::find_origin(float speed=0.5){
+void ScrewModule::find_origin(){
     status = BUSY;
+    float speed = 0.5;
     int origin_needed = -1;
 
     if(digitalRead(top_reed_switch_pin) == 0){
@@ -97,8 +98,9 @@ void ScrewModule::find_origin(float speed=0.5){
     status = IDLE;
 } 
 
-void ScrewModule::move_to_ground(float speed=0.5){ // TO MODIFY WITH GROUND SENSOR
+void ScrewModule::move_to_ground(){ // TO MODIFY WITH GROUND SENSOR
     status = BUSY;
+    float speed = 0.5;
     int bottom_needed = -1;
 
     if(digitalRead(bottom_reed_switch_pin) == 0){
