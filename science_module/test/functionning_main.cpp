@@ -23,7 +23,7 @@ uint8_t position_switch_pin = 50;*/
   position_switch_pin
   );*/
 
-RotationnalLoader test_class = RotationnalLoader();
+RotationnalLoaderModule test_class = RotationnalLoaderModule();
 
 void setup() {
   /*pinMode(MS1_pin, OUTPUT);
