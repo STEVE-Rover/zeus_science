@@ -102,6 +102,9 @@ void ScienceModule::update_status(){
     else if(rotationnal_loader_status != IDLE){
         new_status = rotationnal_loader_status;
     }
+    else if(rotationnal_loader_status != IDLE){
+        new_status = rotationnal_loader_status;
+    }
 }
 
 void ScienceModule::dispatch_modules(){
