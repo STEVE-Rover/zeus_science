@@ -33,20 +33,22 @@ void messageCb(steve_serial::sub_msg& msg){
 
 ros::Subscriber<steve_serial::sub_msg> science_input("msg_subscriber", &messageCb);
 
+MethaneModule methane_module = MethaneModule();
+
 void setup() {
   nh.initNode();
   nh.subscribe(science_input);
   nh.advertise(science_output);
 
-  science.screw_module.init();
+  //science.screw_module.init();
   Serial.begin(9600);
   science.set_modules_stepper_speed();
   //science.screw_module.change_motor_state(science.screw_module.up_down_motor,CCW, 0.1);
-  science.rotationnal_loader.find_origin();
+  //science.rotationnal_loader.find_origin();
   delay(1000);
   //science.screw_module.spin_screw(CW, 0.25);
   //science.rotationnal_loader.find_origin();
-  
+
   
   //delay(3000);
   //science.rotationnal_loader.move_to_site(0, 0);
@@ -65,13 +67,17 @@ void setup() {
   science.rotationnal_loader.set_info_on_sample(4,"life", 1.0);
   Serial.print("Sample 5 now contains: ");
   Serial.println(science.rotationnal_loader.get_info_on_sample(4, "life"));*/
+  //methane_module.activate_fan(1.0, 1);
+  //pinMode(A0, INPUT);
 }
 
 void loop() {
+  methane_module.activate_fan(1.0, 1);
+  delay(2000);
   
-  science.update_status();
+  /*science.update_status();
   science_msg.status.data = science.get_status().c_str();
   science_output.publish(&science_msg);
   science.dispatch_modules();
-  nh.spinOnce();
+  nh.spinOnce();*/
 }

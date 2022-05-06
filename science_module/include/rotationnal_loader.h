@@ -2,13 +2,16 @@
 #include <Arduino.h>
 #include <sample.h>
 #include <Constant.h>
+#include <methane_module.h>
 
 class RotationnalLoaderModule
 {
 private:
+    MethaneModule methane_module = MethaneModule();
     static const int STEP_PER_REV = 200;
     static const int num_of_sample_sites = 8;
-    static const int samples_between_0_1 = 4; //so there are 4 samples between station 1 and 2
+    static const int samples_between_screw_gas = 4; //so there are 4 samples between station 0 and 1
+    static const int samples_between_gas_ph = 4; //so there are 4 samples between station 1 and 2
     static constexpr float gear_ratio = 128/76;
 
     static const int origin_tolerance = 75;
@@ -16,7 +19,9 @@ private:
     static constexpr float stepper_max_speed = 2000.0;
     static constexpr float stepper_cruise_speed = 50.0;
     static constexpr float stepper_accel = 20.0;
-    static const int num_of_site=2;
+    static const int num_of_site = 3;
+
+
     uint8_t direction_pin;
     uint8_t step_pin;
     uint8_t MS1_pin; //required?
@@ -26,7 +31,7 @@ private:
 
     long steps_between_sites;
     int step_mode;
-    int sites[num_of_site] = {0, samples_between_0_1}; //Contains which sample is at
+    int sites[num_of_site] = {0, samples_between_screw_gas, samples_between_gas_ph}; //Contains which sample is at
     int mem_max_speed;
     int mem_cruising_speed;
     int mem_max_acceleration;
@@ -97,6 +102,7 @@ public:
     void find_origin(float speed);
     void update_sites(int sample_on_site_0);
     void move_to_site(int sample, int site);
+    void analyze_sample(int sample_number, int station);
     int get_info_on_sample(int sample_number, String param_to_get);
     void set_info_on_sample(int sample_number, String param_to_update, float value);
     String get_status();
@@ -224,7 +230,7 @@ int RotationnalLoaderModule::get_info_on_sample(int sample_number, String param_
     return samples[sample_number].get_life_info();
   }
   
-  else if (param_to_get == "humidity"){
+  else if (param_to_get == "humidity"){ //REQUIRED?
     return samples[sample_number].get_humidity_info();
   }
 
@@ -233,6 +239,22 @@ int RotationnalLoaderModule::get_info_on_sample(int sample_number, String param_
   }
   status = IDLE;
   return -2;
+}
+
+void RotationnalLoaderModule::analyze_sample(int sample_number, int station){
+  float result = -1.0;
+  move_to_site(sample_number, station);
+
+  if (station == GAS_STATION){
+    result = methane_module.analyse_sample_gas();
+    set_info_on_sample(sample_number, "life", result);
+  }
+  
+  else if (station == PH_STATION){
+    //result = ph_module.analyse_sample_gas(); TO COMPLETE
+    set_info_on_sample(sample_number, "ph", result);
+  }
+  
 }
 
 String RotationnalLoaderModule::get_status(){
@@ -247,6 +269,10 @@ void RotationnalLoaderModule::set_status(String new_status){
 void RotationnalLoaderModule::dispatch_functions(String function, int param){
   if (function == "find_origin"){
     find_origin();
+  }
+
+  else if (function == "analyze_sample"){
+    //analyze_sample();
   }
 
   else if (function == "move_to_site"){
