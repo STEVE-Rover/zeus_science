@@ -33,6 +33,7 @@ public:
     void update_status();
     void dispatch_modules();
 
+    float start_cycle();
 
     RotationnalLoaderModule rotationnal_loader;
     ScrewModule screw_module;
@@ -114,5 +115,25 @@ void ScienceModule::dispatch_modules(){
 
     if(module_to_poke == "rotationnal_loader"){
         rotationnal_loader.dispatch_functions(function_to_run, param);
+    }
+}
+
+float ScienceModule::start_cycle(){
+    if (rotationnal_loader.actual_sample < 8){
+        rotationnal_loader.move_to_site(rotationnal_loader.actual_sample, SCREW_STATION);
+        screw_module.move_to_ground();
+
+        screw_module.spin_screw(CW, 0.1); //lifts up dirt
+        delay(5000);
+        screw_module.spin_screw(CCW, 0.1); //gets the old dirt back on the ground
+        delay(5000);
+
+        rotationnal_loader.move_to_site(rotationnal_loader.actual_sample, GAS_STATION);
+        rotationnal_loader.methane_module.pump_fluid(CW);
+        delay(5000); //Waiting time for the reaction
+        rotationnal_loader.analyze_sample(rotationnal_loader.actual_sample, GAS_STATION);
+        float gas_information = rotationnal_loader.get_info_on_sample(rotationnal_loader.actual_sample, "life");
+        rotationnal_loader.actual_sample ++; //increment the base sample to be processed
+        return gas_information;
     }
 }

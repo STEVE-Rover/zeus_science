@@ -7,7 +7,6 @@
 class RotationnalLoaderModule
 {
 private:
-    MethaneModule methane_module = MethaneModule();
     static const int STEP_PER_REV = 200;
     static const int num_of_sample_sites = 8;
     static const int samples_between_screw_gas = 4; //so there are 4 samples between station 0 and 1
@@ -42,6 +41,7 @@ private:
     
 
 public:
+    MethaneModule methane_module = MethaneModule();
     RotationnalLoaderModule(){
       status = CONSTRUCTOR;
       direction_pin = 52;
@@ -51,6 +51,7 @@ public:
       MS3_pin = 47;
       position_switch_pin = 50;
       step_mode = 16;
+      actual_sample = 0;
       
 
       stepper1 = AccelStepper(1, step_pin, direction_pin);
@@ -95,6 +96,7 @@ public:
     float max_accel;
     float max_speed;
     float one_revolution;
+    uint8_t actual_sample;
 
     void set_pinout();
     float rpm_to_steps(long required_rpm);
@@ -108,7 +110,6 @@ public:
     String get_status();
     void set_status(String new_status);
     void dispatch_functions(String function, int param);
-
     AccelStepper stepper1;
 };
 
