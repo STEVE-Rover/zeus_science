@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+
 class Sample
 {
 private:

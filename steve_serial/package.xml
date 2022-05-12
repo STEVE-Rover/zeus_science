@@ -2,9 +2,9 @@
 <package format="2">
   <name>steve_serial</name>
   <version>0.0.0</version>
-  <description>The steve_serial package</description>
+  <description>The steve_serial package to generate custom message for science module</description>
 
-  <maintainer email="loic.boileau@usherbrooke.ca">Loic Boileau</maintainer>
+  <maintainer email="rover.steve@usherbrooke.ca">Loic Boileau</maintainer>
 
   <license>BSD</license>
 

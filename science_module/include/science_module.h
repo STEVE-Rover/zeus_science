@@ -21,19 +21,19 @@ public:
     String get_status();
     void set_status(String new_status);
 
-    String get_module_to_poke();
+    /*String get_module_to_poke();
     void set_module_to_poke(String module);
 
     String get_function_to_run();
     void set_function_to_run(String function);
 
     int get_function_param();
-    void set_function_param(int function_param);
+    void set_function_param(int function_param);*/
 
     void update_status();
-    void dispatch_modules();
+    //void dispatch_modules();
 
-    float start_cycle();
+    float start_cycle(int sample_number);
 
     RotationnalLoaderModule rotationnal_loader;
     ScrewModule screw_module;
@@ -69,7 +69,7 @@ void ScienceModule::set_status(String new_status){
     module_status = new_status;
 }
 
-String ScienceModule::get_module_to_poke(){
+/*String ScienceModule::get_module_to_poke(){
     return module_to_poke;
 }
 
@@ -90,7 +90,7 @@ int ScienceModule::get_function_param(){
 }
 void ScienceModule::set_function_param(int function_param){
     param = function_param;
-}
+}*/
 
 void ScienceModule::update_status(){
     String new_status = BUSY;
@@ -108,7 +108,7 @@ void ScienceModule::update_status(){
     }
 }
 
-void ScienceModule::dispatch_modules(){
+/*void ScienceModule::dispatch_modules(){
     if(module_to_poke == "Screw"){
         screw_module.dispatch_functions(function_to_run, param);
     }
@@ -116,10 +116,19 @@ void ScienceModule::dispatch_modules(){
     if(module_to_poke == "rotationnal_loader"){
         rotationnal_loader.dispatch_functions(function_to_run, param);
     }
-}
+}*/
 
-float ScienceModule::start_cycle(){
-    if (rotationnal_loader.actual_sample < 8){
+float ScienceModule::start_cycle(int sample_number){
+
+    if (sample_number != -1 && sample_number < 8){
+        rotationnal_loader.move_to_site(sample_number, GAS_STATION);
+        rotationnal_loader.methane_module.pump_fluid(CW);
+        delay(5000); //Waiting time for the reaction
+        rotationnal_loader.analyze_sample(sample_number, GAS_STATION);
+        return rotationnal_loader.get_info_on_sample(sample_number, "life");
+    }
+    
+    else if (rotationnal_loader.actual_sample < 8){
         rotationnal_loader.move_to_site(rotationnal_loader.actual_sample, SCREW_STATION);
         screw_module.move_to_ground();
 
@@ -133,7 +142,7 @@ float ScienceModule::start_cycle(){
         delay(5000); //Waiting time for the reaction
         rotationnal_loader.analyze_sample(rotationnal_loader.actual_sample, GAS_STATION);
         float gas_information = rotationnal_loader.get_info_on_sample(rotationnal_loader.actual_sample, "life");
-        rotationnal_loader.actual_sample ++; //increment the base sample to be processed
+        rotationnal_loader.actual_sample ++; //increment the base sample to be processed if the cycle was started with a new sample
         return gas_information;
     }
 }
