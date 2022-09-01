@@ -13,12 +13,12 @@ ScienceModule science = ScienceModule();
 
 ros::NodeHandle nh;
 
-steve_serial::pub_msg science_msg; // change testmsg to science_msg
+zeus_serial::pub_msg science_msg; // change testmsg to science_msg
 
 ros::Publisher science_output("science_state", &science_msg);
 
 
-void messageCb(steve_serial::sub_msg& msg){
+void messageCb(zeus_serial::sub_msg& msg){
   if (science.get_status() == IDLE){
     science.set_module_to_poke(msg.module.data);
     science.set_function_to_run(msg.function.data);
@@ -31,7 +31,7 @@ void messageCb(steve_serial::sub_msg& msg){
   }
 }
 
-ros::Subscriber<steve_serial::sub_msg> science_input("msg_subscriber", &messageCb);
+ros::Subscriber<zeus_serial::sub_msg> science_input("msg_subscriber", &messageCb);
 
 MethaneModule methane_module = MethaneModule();
 

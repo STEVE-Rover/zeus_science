@@ -1,4 +1,4 @@
-# steve_science
+# zeus_science
 
 ## setup requirements
 

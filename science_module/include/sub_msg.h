@@ -1,5 +1,5 @@
-#ifndef _ROS_steve_serial_sub_msg_h
-#define _ROS_steve_serial_sub_msg_h
+#ifndef _ROS_zeus_serial_sub_msg_h
+#define _ROS_zeus_serial_sub_msg_h
 
 #include <stdint.h>
 #include <string.h>
@@ -8,7 +8,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Int8.h"
 
-namespace steve_serial
+namespace zeus_serial
 {
 
   class sub_msg : public ros::Msg
@@ -46,7 +46,7 @@ namespace steve_serial
      return offset;
     }
 
-    const char * getType(){ return "steve_serial/sub_msg"; };
+    const char * getType(){ return "zeus_serial/sub_msg"; };
     const char * getMD5(){ return "d49c21b3d51790677a6624022511985b"; };
 
   };
