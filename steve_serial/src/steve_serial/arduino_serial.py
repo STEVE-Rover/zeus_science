@@ -2,7 +2,7 @@
 
 import rospy
 
-from steve_serial.msg import testmsg 
+from zeus_serial.msg import testmsg 
 
 
 if __name__ == '__main__':

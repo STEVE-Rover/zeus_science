@@ -1,4 +1,4 @@
-# steve_serial
+# zeus_serial
 
 ## Launch Serial Arduino
 1. Find USB port on Computer

@@ -10,10 +10,10 @@
 ScienceModule science = ScienceModule(); 
 ros::NodeHandle nh;
 
-steve_serial::testmsg test; //type of message to publish
+zeus_serial::testmsg test; //type of message to publish
 ros::Publisher test_msg("msg_publisher", &test);
 
-void messageCb(steve_serial::testmsg& msg){
+void messageCb(zeus_serial::testmsg& msg){
   test.module.data = msg.module.data;
   test.function.data = msg.function.data;
   test.param.data = msg.param.data;
@@ -26,7 +26,7 @@ void messageCb(steve_serial::testmsg& msg){
   test.param.data = test.param.data + 1;
 }
 
-ros::Subscriber<steve_serial::testmsg> sub("msg_subscriber", &messageCb);
+ros::Subscriber<zeus_serial::testmsg> sub("msg_subscriber", &messageCb);
 
 void setup() {
   nh.initNode();

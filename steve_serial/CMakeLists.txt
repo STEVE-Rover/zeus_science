@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-project(steve_serial)
+project(zeus_serial)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy
