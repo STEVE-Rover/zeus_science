@@ -1,9 +1,7 @@
 # zeus_science
 
-## setup requirements
+## demo_megagenial
+Code used during Méga Génial, continously loops between the 3 working scoops and executes a sequence picking up dirt
 
-In terms of library, the following are needed on your machine in order to compile accordingly:
-- AccelStepper
-- Ros_lib
-
-*If you have problems downloading ros_lib, try removing the version part of the package. Ex: "@0.5.6" 
+## code_science
+Hypothetical code for the whole science module sequence, not all physical the components have been bought or installed but coded as if it was. Theoretical code, take it with a grain of salt as it has not been able to be tested yet. 
